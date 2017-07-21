@@ -4,8 +4,10 @@ require "yaml"
 
 require "./srcombot/*"
 
-CONFIG = YAML.parse(File.open("./config.yaml"))
-CONFIG["target"] = ENV["DISCORD_TARGET_URL"]
+CONFIG = {
+  "target"  => ENV["DISCORD_TARGET_URL"],
+  "games"   => ["yo1yq2dq", "8nd2wvd0", "qw6jv76j", "nj1n99dp", "29d3w01l", "om1m3j62", "xv1pj718", "xldezxd3", "om1mj412", "m9doj36p", "946w971r", "l3dxlpdy", "29d37g6l", "ok6qj9dg", "xldexx63", "xv1py818", "yd4kmk6e", "vo6gv562", "j1nyvy6p", "y657jede", "xkdkjq1m", "jy65041e", "n4d7pgd7", "kyd4051e", "j1lexz6g"]
+}
 
 def srcom_url_for(game)
   "http://www.speedrun.com/api/v1/runs?status=verified&orderby=verify-date&direction=desc&game=#{game}&embed=category,players,game,platform,region"
@@ -73,8 +75,8 @@ def post_run(run : JSON::Any)
   HTTP::Client.post(CONFIG["target"].to_s, headers: HTTP::Headers{"Content-Type" => "application/json"}, body: discord_payload)
 end
 
-games = CONFIG["games"].map do |game_id|
-  Game.new(game_id.as_s)
+games = CONFIG["games"].as(Array(String)).map do |game_id|
+  Game.new(game_id)
 end
 
 loop do
