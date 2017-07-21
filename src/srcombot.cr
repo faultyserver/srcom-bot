@@ -2,6 +2,8 @@ require "http"
 require "json"
 require "yaml"
 
+require "kemal"
+
 require "./srcombot/*"
 
 CONFIG = {
@@ -83,7 +85,6 @@ end
 # Post a startup message
 HTTP::Client.post(CONFIG["target"].to_s, headers: HTTP::Headers{"Content-Type" => "application/json"}, body: { "content" => "Hello! I'll be posting runs submitted to speedrun.com as they get verified." }.to_json)
 
-
 loop do
   games.each do |game|
     puts "Checking for new runs for #{game.id}"
@@ -106,3 +107,5 @@ loop do
   # Check every 5 minutes
   sleep(50*60)
 end
+
+spawn{ Kemal.run }

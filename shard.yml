@@ -9,4 +9,7 @@ targets:
   srcombot:
     main: src/srcombot.cr
 
+dependencies:
+  kemal:
+    github: kemalcr/kemal
 
