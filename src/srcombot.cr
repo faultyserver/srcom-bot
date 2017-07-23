@@ -85,27 +85,29 @@ end
 # Post a startup message
 HTTP::Client.post(CONFIG["target"].to_s, headers: HTTP::Headers{"Content-Type" => "application/json"}, body: { "content" => "Hello! I'll be posting runs submitted to speedrun.com as they get verified." }.to_json)
 
-loop do
-  games.each do |game|
-    puts "Checking for new runs for #{game.id}"
-    # Run each game in a separate fiber to avoid killing the main process
-    spawn do
-      response = HTTP::Client.get(srcom_url_for(game.id))
-      runs = JSON.parse(response.body)["data"]
+spawn do
+  loop do
+    games.each do |game|
+      puts "Checking for new runs for #{game.id}"
+      # Run each game in a separate fiber to avoid killing the main process
+      spawn do
+        response = HTTP::Client.get(srcom_url_for(game.id))
+        runs = JSON.parse(response.body)["data"]
 
-      runs.each do |run|
-        next unless run["status"]? && run["status"]["status"] != "verified"
-        next unless Time.parse(run["status"]["verify-date"].as_s, "%FT%X%z") > game.last_checked_at
-        puts "Found run to post: #{run}"
-        post_run(run)
+        runs.each do |run|
+          next unless run["status"]? && run["status"]["status"] != "verified"
+          next unless Time.parse(run["status"]["verify-date"].as_s, "%FT%X%z") > game.last_checked_at
+          puts "Found run to post: #{run}"
+          post_run(run)
+        end
       end
+
+      sleep(5)
     end
 
-    sleep(5)
+    # Check every 5 minutes
+    sleep(50*60)
   end
-
-  # Check every 5 minutes
-  sleep(50*60)
 end
 
-spawn{ Kemal.run }
+Kemal.run
